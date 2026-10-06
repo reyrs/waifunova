@@ -86,32 +86,50 @@ export function ChatPanel({ waifu, userId }: { waifu: Waifu; userId: string }) {
     if (!text || typing) return
     setInput('')
     setSaveError(false)
-    setMessages((prev) => [...prev, { id: crypto.randomUUID(), from: 'user', text }])
+
+    const userMsgId = crypto.randomUUID()
+    const nextMessages = [...messages, { id: userMsgId, from: 'user' as const, text }]
+    setMessages(nextMessages)
     setTyping(true)
 
-    const pool = waifu.replies.filter((r) => r !== lastReply.current)
-    const reply = pool[Math.floor(Math.random() * pool.length)]
-    lastReply.current = reply
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        waifuName: waifu.name,
+        message: text,
+        history: messages.slice(-10),
+      }),
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error('API error')
+        const data = await res.json()
+        return data.reply as string
+      })
+      .catch(() => {
+        const pool = waifu.replies.filter((r) => r !== lastReply.current)
+        return pool[Math.floor(Math.random() * pool.length)] || waifu.replies[0]
+      })
+      .then(async (reply) => {
+        lastReply.current = reply
+        setTyping(false)
+        const msgId = crypto.randomUUID()
+        setMessages((prev) => [...prev, { id: msgId, from: 'waifu', text: reply }])
 
-    replyTimer.current = setTimeout(async () => {
-      setTyping(false)
-      const msgId = crypto.randomUUID()
-      setMessages((prev) => [...prev, { id: msgId, from: 'waifu', text: reply }])
-
-      if (userId === 'guest') {
-        if (typeof window !== 'undefined') {
-          const key = `waifunova_chat_${waifu.name}`
-          const existing = JSON.parse(localStorage.getItem(key) || '[]')
-          existing.push({ id: msgId, message: text, reply })
-          localStorage.setItem(key, JSON.stringify(existing.slice(-50)))
+        if (userId === 'guest') {
+          if (typeof window !== 'undefined') {
+            const key = `waifunova_chat_${waifu.name}`
+            const existing = JSON.parse(localStorage.getItem(key) || '[]')
+            existing.push({ id: msgId, message: text, reply })
+            localStorage.setItem(key, JSON.stringify(existing.slice(-50)))
+          }
+        } else {
+          const { error } = await createClient()
+            .from('chat_history')
+            .insert({ user_id: userId, waifu_name: waifu.name, message: text, reply })
+          if (error) setSaveError(true)
         }
-      } else {
-        const { error } = await createClient()
-          .from('chat_history')
-          .insert({ user_id: userId, waifu_name: waifu.name, message: text, reply })
-        if (error) setSaveError(true)
-      }
-    }, 900 + Math.random() * 700)
+      })
   }
 
   return (
