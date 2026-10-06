@@ -1,32 +1,165 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/*
+  Theme: one token set, two modes. data-theme is resolved on <html> by the
+  inline script in layout.tsx; the media query covers the no-JS case.
+  Radius rule: controls (buttons, chips, inputs) are pills; surfaces and
+  large media use 20px; thumbnails use 12px.
+  Z-index scale: nav 30, grain 40, skip link 50.
+*/
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  --bg: #f2f2f4;
+  --surface: #fafafb;
+  --surface-2: #e7e7eb;
+  --ink: #141318;
+  --muted: #5d5b66;
+  --line: rgb(20 19 24 / 0.12);
+  --accent: #c8245c;
+  --accent-ink: #ffffff;
+  --accent-soft: rgb(200 36 92 / 0.1);
+  --shadow-tint: 250 12% 20%;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0f0e12;
+  --surface: #17161b;
+  --surface-2: #222027;
+  --ink: #ecebef;
+  --muted: #a19fab;
+  --line: rgb(236 235 239 / 0.1);
+  --accent: #ec6a93;
+  --accent-ink: #141318;
+  --accent-soft: rgb(236 106 147 / 0.12);
+  --shadow-tint: 250 30% 2%;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #0f0e12;
+    --surface: #17161b;
+    --surface-2: #222027;
+    --ink: #ecebef;
+    --muted: #a19fab;
+    --line: rgb(236 235 239 / 0.1);
+    --accent: #ec6a93;
+    --accent-ink: #141318;
+    --accent-soft: rgb(236 106 147 / 0.12);
+    --shadow-tint: 250 30% 2%;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-jp: var(--font-dela), "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-soft: 0 24px 60px -24px hsl(var(--shadow-tint) / 0.35);
+}
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --border: 214.3 31.8% 91.4%;  /* INI YANG NGE-FIX border-border */
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
+  html {
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-  }
-
-  * {
-    @apply border-border;  /* Sekarang ini jalan karena --border ada */
-  }
   body {
-    @apply bg-background text-foreground;
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@utility text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--ink);
+}
+
+@utility tategaki {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+
+/* Fixed grain layer. Never on a scrolling element. */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+:root[data-theme="dark"] .grain::after {
+  opacity: 0.07;
+}
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.18), transparent);
+  animation: shimmer 1.4s var(--ease-out-expo) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
   }
 }

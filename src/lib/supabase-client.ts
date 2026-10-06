@@ -1,9 +1,8 @@
-// src/lib/supabase-client.ts
 import { createBrowserClient } from '@supabase/ssr'
+import type { Database } from '@/types/supabase'
 
-export const createClient = () => {
-  return createBrowserClient(
-    'https://pewhyndeytgaudpemikg.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBld2h5bmRleXRnYXVkcGVtaWtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzNjgwNTYsImV4cCI6MjA3ODk0NDA1Nn0.PFxT969twhZDqIaR_vAxHQRzQ4wzqGPJUABCuQWiqyw'
+export const createClient = () =>
+  createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
-}

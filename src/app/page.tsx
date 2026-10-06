@@ -1,34 +1,34 @@
-import { createServerSupabase } from '@/lib/supabase-server'
-import { redirect } from 'next/navigation'
-import { WaifuSelector } from '@/components/WaifuSelector'
-import { ChatBox } from '@/components/ChatBox'
-import { ImageGenerator } from '@/components/ImageGenerator'
-import ClientThemeToggle from '@/components/ClientThemeToggle'
+import { Nav } from '@/components/landing/Nav'
+import { Hero } from '@/components/landing/Hero'
+import { NameMarquee } from '@/components/landing/NameMarquee'
+import { Roster } from '@/components/landing/Roster'
+import { ChatDemo } from '@/components/landing/ChatDemo'
+import { GeneratorDemo } from '@/components/landing/GeneratorDemo'
+import { ClosingCta } from '@/components/landing/ClosingCta'
+import { Wordmark } from '@/components/Wordmark'
+import { ThemeControl } from '@/components/ThemeControl'
 
-export default async function Home() {
-  const supabase = await createServerSupabase()  // ← TAMBAH AWAIT!
-  const { data: { session } } = await supabase.auth.getSession()
-
-  if (!session) {
-    redirect('/login')
-  }
-
+export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-purple-900 to-pink-900 text-white">
-      <header className="border-b border-white/10 backdrop-blur-lg bg-black/50 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
-            WAIFUNOVA
-          </h1>
-          <ClientThemeToggle />
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-6 py-12 grid lg:grid-cols-3 gap-8">
-        <WaifuSelector userId={session.user.id} />
-        <ChatBox userId={session.user.id} />
-        <ImageGenerator userId={session.user.id} />
+    <>
+      <Nav />
+      <main id="konten">
+        <Hero />
+        <NameMarquee />
+        <Roster />
+        <ChatDemo />
+        <GeneratorDemo />
+        <ClosingCta />
       </main>
-    </div>
+      <footer className="border-t border-line">
+        <div className="mx-auto flex max-w-[1400px] flex-col gap-6 px-4 py-10 md:flex-row md:items-center md:justify-between md:px-8">
+          <Wordmark />
+          <div className="flex flex-wrap items-center gap-6">
+            <p className="text-sm text-muted">© 2026 Waifunova. Dibuat oleh anak Indonesia.</p>
+            <ThemeControl id="footer-theme" />
+          </div>
+        </div>
+      </footer>
+    </>
   )
 }
